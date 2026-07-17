@@ -1,0 +1,52 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: device-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/device_db}
+    username: ${DB_USERNAME:device_service}
+    password: ${DB_PASSWORD:device_service_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+      hibernate:
+        ddl-auto: none
+      show-sql: false
+  flyway:
+    enabled: true
+  mvc:
+    apiVersion:
+        use:
+          header: x-api-v
+        # Springdoc's /v3/api-docs and /swagger-ui paths are not versioned, so a
+        # required header would 400 them. Endpoints still pin their own version
+        # via @RequestMapping(version = "..."); callers omitting the header get v1.
+        required: false
+        default: "1"
+
+open-api:
+  title: Device Service API
+  description: Device service API for  Energy Tracker Project
+  version: 1.0.0
+  contact:
+    name: ${OPENAPI_CONTACT_NAME:}
+    url: ${OPENAPI_CONTACT_URL:}
+    email: ${OPENAPI_CONTACT_EMAIL:}
+  license:
+    name: some name
+    url: some url
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    org.flywaydb : debug
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG
