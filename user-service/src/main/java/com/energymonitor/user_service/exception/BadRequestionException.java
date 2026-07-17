@@ -1,4 +1,4 @@
-package com.energymonito.user_service.exception;
+package com.energymonitor.user_service.exception;
 
 public class BadRequestionException extends RuntimeException {
     public BadRequestionException(String message) {

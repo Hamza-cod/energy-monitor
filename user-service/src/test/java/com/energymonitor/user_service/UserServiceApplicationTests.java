@@ -1,4 +1,4 @@
-package com.energymonito.user_service;
+package com.energymonitor.user_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,11 +1,10 @@
-package com.energymonito.user_service.controller;
+package com.energymonitor.user_service.controller;
 
-import com.energymonito.user_service.dto.UserDto;
-import com.energymonito.user_service.dto.request.UserCreateDto;
-import com.energymonito.user_service.service.UserService;
+import com.energymonitor.user_service.dto.UserDto;
+import com.energymonitor.user_service.dto.request.UserCreateDto;
+import com.energymonitor.user_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

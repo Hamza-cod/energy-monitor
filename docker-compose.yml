@@ -11,5 +11,19 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+
+  device-postgres:
+    image: postgres:18-alpine
+    container_name: device_db
+    restart: always
+    environment:
+      POSTGRES_USER: device_service
+      POSTGRES_PASSWORD: device_service_pass
+      POSTGRES_DB: device_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - device_pgdata:/var/lib/postgresql
 volumes:
     pgdata:
+    device_pgdata:

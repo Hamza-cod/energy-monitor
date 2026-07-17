@@ -1,14 +1,13 @@
-package com.energymonito.user_service.service;
+package com.energymonitor.user_service.service;
 
-import com.energymonito.user_service.UserMapper;
-import com.energymonito.user_service.dto.UserDto;
-import com.energymonito.user_service.dto.request.UserCreateDto;
-import com.energymonito.user_service.exception.BadRequestionException;
-import com.energymonito.user_service.model.User;
-import com.energymonito.user_service.repository.UserRepository;
+import com.energymonitor.user_service.UserMapper;
+import com.energymonitor.user_service.dto.UserDto;
+import com.energymonitor.user_service.dto.request.UserCreateDto;
+import com.energymonitor.user_service.exception.BadRequestionException;
+import com.energymonitor.user_service.model.User;
+import com.energymonitor.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.UUID;
 

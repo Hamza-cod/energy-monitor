@@ -1,4 +1,4 @@
-package com.energymonito.user_service.model;
+package com.energymonitor.user_service.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

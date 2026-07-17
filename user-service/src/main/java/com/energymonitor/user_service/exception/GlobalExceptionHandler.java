@@ -1,4 +1,4 @@
-package com.energymonito.user_service.exception;
+package com.energymonitor.user_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;

@@ -1,4 +1,4 @@
-package com.energymonito.user_service.dto;
+package com.energymonitor.user_service.dto;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 @Data
