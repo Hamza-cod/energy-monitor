@@ -1,0 +1,25 @@
+
+
+spring:
+  application:
+    name: ingestion-service
+  mvc:
+    apiVersion:
+      use:
+        header: x-api-v
+  Kafka:
+      bootstrap-servers : localhost:9094
+      template :
+          default-topic : energy-usage
+      producer :
+        key-serializer : org.apache.kafka.common.serialization.StringSerializer
+        value-serializer : org.springframework.kafka.support.serializer.JsonSerializer
+
+# Continuous simulation configuration
+simulation :
+  endpoint: http://localhost:8082/api/ingestion
+  apiVersion: v1
+  requests-per-interval: 10000
+  interval-ms: 60000
+server:
+  port: 8082
