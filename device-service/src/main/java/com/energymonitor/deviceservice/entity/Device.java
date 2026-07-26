@@ -18,11 +18,11 @@ import lombok.NoArgsConstructor;
 @Data
 public class Device {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private String id;
 
     private String name;
 
     private String location;
-    private Long userId;
+    private String userId;
 }
