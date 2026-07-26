@@ -1,0 +1,13 @@
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/BaseDeviceDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/BaseUserDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/DeviceDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/UserDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/request/DeviceCreateDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/request/DeviceUpdateDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/dto/request/UserCreateDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/events/AlertingEvent.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/events/EnergyUsageDto.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/events/EnergyUsageEvent.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/exception/BadRequestException.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/exception/BaseRestExceptionHandler.java
+/Users/hamzamaouhoub/projects/portfolio_projects/energy-tracker/common-lib/src/main/java/com/energymonitor/common/exception/ResourceNotFoundException.java

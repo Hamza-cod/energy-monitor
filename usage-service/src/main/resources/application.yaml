@@ -1,0 +1,37 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: usage-service
+
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: usage-group
+
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+        spring.json.trusted.packages: com.energymonitor.common.events
+        spring.json.use.type.headers: true
+        spring.json.value.default.type: com.energymonitor.common.events.EnergyUsageEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+influx-db:
+    url: http://localhost:8072
+    token: 512bit_token
+    org: energy_monitor
+    bucket: usage-bucket
+
+device:
+  client:
+    base-url : http://localhost:8081
+
+user:
+  client:
+    base-url: http://localhost:8080

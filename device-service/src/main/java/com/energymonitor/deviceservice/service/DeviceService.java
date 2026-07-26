@@ -1,8 +1,8 @@
 package com.energymonitor.deviceservice.service;
 
-import com.energymonitor.deviceservice.dto.DeviceDto;
-import com.energymonitor.deviceservice.dto.request.DeviceCreateDto;
-import com.energymonitor.deviceservice.dto.request.DeviceUpdateDto;
+import com.energymonitor.common.dto.DeviceDto;
+import com.energymonitor.common.dto.request.DeviceCreateDto;
+import com.energymonitor.common.dto.request.DeviceUpdateDto;
 import com.energymonitor.deviceservice.entity.Device;
 import com.energymonitor.deviceservice.exception.DeviceNotFoundException;
 import com.energymonitor.deviceservice.mapper.DeviceMapper;
@@ -19,7 +19,7 @@ public class DeviceService {
     private final DeviceRepository deviceRepository;
     private final DeviceMapper deviceMapper;
 
-    public DeviceDto getDeviceById(Long id) {
+    public DeviceDto getDeviceById(String id) {
         return deviceMapper.toDeviceDto(findDeviceOrThrow(id));
     }
 
@@ -28,21 +28,21 @@ public class DeviceService {
         return deviceMapper.toDeviceDto(deviceRepository.save(device));
     }
 
-    public DeviceDto updateDevice(Long id, DeviceUpdateDto request) {
+    public DeviceDto updateDevice(String id, DeviceUpdateDto request) {
         Device existing = findDeviceOrThrow(id);
         deviceMapper.updateDeviceFromDto(request, existing);
         return deviceMapper.toDeviceDto(deviceRepository.save(existing));
     }
 
-    public void deleteDevice(Long id) {
+    public void deleteDevice(String id) {
         deviceRepository.delete(findDeviceOrThrow(id));
     }
 
-    public List<DeviceDto> getAllDevicesByUserId(Long userId) {
+    public List<DeviceDto> getAllDevicesByUserId(String userId) {
         return deviceMapper.toDeviceDtoList(deviceRepository.findAllByUserId(userId));
     }
 
-    private Device findDeviceOrThrow(Long id) {
+    private Device findDeviceOrThrow(String id) {
         return deviceRepository.findById(id)
                 .orElseThrow(() -> new DeviceNotFoundException(id));
     }

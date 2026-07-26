@@ -7,13 +7,17 @@ spring:
     apiVersion:
       use:
         header: x-api-v
-  Kafka:
-      bootstrap-servers : localhost:9094
-      template :
-          default-topic : energy-usage
-      producer :
-        key-serializer : org.apache.kafka.common.serialization.StringSerializer
-        value-serializer : org.springframework.kafka.support.serializer.JsonSerializer
+  kafka:
+    bootstrap-servers: localhost:9094
+    template:
+      default-topic: energy-usage
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        # Emit the __TypeId__ header so consumers resolve the concrete event type;
+        # the shared common-lib package makes that id valid on both sides.
+        spring.json.add.type.headers: true
 
 # Continuous simulation configuration
 simulation :

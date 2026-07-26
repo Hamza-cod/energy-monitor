@@ -1,6 +1,6 @@
 package com.energymonitor.ingestionservice.simulation;
 
-import com.energymonitor.ingestionservice.dto.EnergyUsageDto;
+import com.energymonitor.common.events.EnergyUsageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;

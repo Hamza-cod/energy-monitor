@@ -1,6 +1,6 @@
 package com.energymonitor.ingestionservice.simulation;
 
-import com.energymonitor.ingestionservice.dto.EnergyUsageDto;
+import com.energymonitor.common.events.EnergyUsageDto;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class ParallelDataSimulator implements CommandLineRunner {
             executorService.submit(() -> {
                 for (int j = 0; j < requestsForThread; j++) {
                     EnergyUsageDto dto = EnergyUsageDto.builder()
-                            .deviceId(randomUUID().toString())
+                            .deviceId("ff266388-1512-41be-bcdc-c145db59d718")
                             .energyConsumed(Math.round(random.nextDouble(0.0, 2.0) * 100.0) / 100.0)
                             .timestamp(LocalDateTime.now()
                                     .atZone(ZoneId.systemDefault()).toInstant())

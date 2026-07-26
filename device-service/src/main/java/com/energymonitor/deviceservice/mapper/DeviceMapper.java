@@ -1,8 +1,8 @@
 package com.energymonitor.deviceservice.mapper;
 
-import com.energymonitor.deviceservice.dto.DeviceDto;
-import com.energymonitor.deviceservice.dto.request.DeviceCreateDto;
-import com.energymonitor.deviceservice.dto.request.DeviceUpdateDto;
+import com.energymonitor.common.dto.DeviceDto;
+import com.energymonitor.common.dto.request.DeviceCreateDto;
+import com.energymonitor.common.dto.request.DeviceUpdateDto;
 import com.energymonitor.deviceservice.entity.Device;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

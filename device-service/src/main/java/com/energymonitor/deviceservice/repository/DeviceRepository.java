@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface DeviceRepository extends JpaRepository<Device, Long> {
+public interface DeviceRepository extends JpaRepository<Device, String> {
 
-    List<Device> findAllByUserId(Long userId);
+    List<Device> findAllByUserId(String userId);
 }

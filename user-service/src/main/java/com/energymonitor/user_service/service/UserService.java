@@ -1,9 +1,9 @@
 package com.energymonitor.user_service.service;
 
 import com.energymonitor.user_service.UserMapper;
-import com.energymonitor.user_service.dto.UserDto;
-import com.energymonitor.user_service.dto.request.UserCreateDto;
-import com.energymonitor.user_service.exception.BadRequestionException;
+import com.energymonitor.common.dto.UserDto;
+import com.energymonitor.common.dto.request.UserCreateDto;
+import com.energymonitor.common.exception.BadRequestException;
 import com.energymonitor.user_service.model.User;
 import com.energymonitor.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class UserService {
 
     public UserDto create(UserCreateDto request) {
         if (userRepository.existsByEmail(request.getEmail())){
-            throw new BadRequestionException("user already existis");
+            throw new BadRequestException("user already existis");
         }
         User user = userMapper.toUser(request);
         User saved = userRepository.save(user);

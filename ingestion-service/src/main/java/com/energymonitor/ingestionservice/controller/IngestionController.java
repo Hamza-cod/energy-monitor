@@ -1,6 +1,6 @@
 package com.energymonitor.ingestionservice.controller;
 
-import com.energymonitor.ingestionservice.dto.EnergyUsageDto;
+import com.energymonitor.common.events.EnergyUsageDto;
 import com.energymonitor.ingestionservice.service.IngestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
