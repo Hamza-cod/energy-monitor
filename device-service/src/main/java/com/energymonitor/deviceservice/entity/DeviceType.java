@@ -1,4 +1,4 @@
-package com.energymonitor.deviceservice.model;
+package com.energymonitor.deviceservice.entity;
 
 public enum DeviceType {
     SPEAKER,

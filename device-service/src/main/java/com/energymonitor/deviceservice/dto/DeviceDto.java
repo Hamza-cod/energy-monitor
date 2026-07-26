@@ -6,5 +6,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class DeviceDto extends BaseDeviceDto {
-    private Long id;
+    private String id;
 }

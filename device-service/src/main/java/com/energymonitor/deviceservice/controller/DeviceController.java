@@ -27,7 +27,7 @@ public class DeviceController {
     private final DeviceService deviceService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<DeviceDto> getDeviceById(@PathVariable Long id) {
+    public ResponseEntity<DeviceDto> getDeviceById(@PathVariable String id) {
         return ResponseEntity.ok(deviceService.getDeviceById(id));
     }
 
@@ -38,19 +38,19 @@ public class DeviceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DeviceDto> updateDevice(@PathVariable Long id,
+    public ResponseEntity<DeviceDto> updateDevice(@PathVariable String id,
                                                   @Valid @RequestBody DeviceUpdateDto request) {
         return ResponseEntity.ok(deviceService.updateDevice(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDevice(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDevice(@PathVariable String id) {
         deviceService.deleteDevice(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<DeviceDto>> getAllDevicesByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<DeviceDto>> getAllDevicesByUserId(@PathVariable String userId) {
         return ResponseEntity.ok(deviceService.getAllDevicesByUserId(userId));
     }
 }
