@@ -1,7 +1,7 @@
 package com.energymonitor.ingestionservice.service;
 
-import com.energymonitor.ingestionservice.dto.EnergyUsageDto;
-import com.energymonitor.ingestionservice.kafka.event.EnergyUsageEvent;
+import com.energymonitor.common.events.EnergyUsageDto;
+import com.energymonitor.common.events.EnergyUsageEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

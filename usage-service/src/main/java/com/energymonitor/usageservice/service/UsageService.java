@@ -1,12 +1,12 @@
 package com.energymonitor.usageservice.service;
 
 import com.energymonitor.usageservice.config.InfluxDbProperties;
-import com.energymonitor.usageservice.dto.DeviceDto;
-import com.energymonitor.usageservice.dto.UserDto;
+import com.energymonitor.common.dto.DeviceDto;
+import com.energymonitor.common.dto.UserDto;
 import com.energymonitor.usageservice.http.DeviceClient;
 import com.energymonitor.usageservice.http.UserClient;
-import com.energymonitor.usageservice.kafka.event.AlertingEvent;
-import com.energymonitor.usageservice.kafka.event.EnergyUsageEvent;
+import com.energymonitor.common.events.AlertingEvent;
+import com.energymonitor.common.events.EnergyUsageEvent;
 import com.energymonitor.usageservice.model.DeviceEnergy;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.QueryApi;
@@ -115,11 +115,11 @@ public class UsageService {
             try {
                 final DeviceDto deviceResponse = deviceClient.getDeviceById(deviceEnergy.getDeviceId());
 
-                if (deviceResponse == null || deviceResponse.id() == null) {
+                if (deviceResponse == null || deviceResponse.getId() == null) {
                     log.warn("Device not found for ID: {}", deviceEnergy.getDeviceId());
                     continue;
                 }
-                deviceEnergy.setUserId(deviceResponse.userId());
+                deviceEnergy.setUserId(deviceResponse.getUserId());
             } catch (Exception e) {
                 log.warn("Failed to fetch device for ID: {}", deviceEnergy.getDeviceId(), e);
             }
@@ -134,8 +134,8 @@ public class UsageService {
         List<String> usersIds = new ArrayList<>(deviceUserMap.keySet());
         usersIds.forEach(userId -> {
             UserDto user = userClient.getUserById(userId);
-            userThresholdMap.put(userId, user.energyAlertingThreshold());
-            userEmailMap.put(userId, user.email());
+            userThresholdMap.put(userId, user.getEnergyAlertingThreshold());
+            userEmailMap.put(userId, user.getEmail());
         });
 
         // check threshold against the aggregated energy usage

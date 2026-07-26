@@ -1,6 +1,6 @@
 package com.energymonitor.deviceservice.service;
 
-import com.energymonitor.deviceservice.dto.DeviceDto;
+import com.energymonitor.common.dto.DeviceDto;
 import com.energymonitor.deviceservice.entity.Device;
 import com.energymonitor.deviceservice.exception.DeviceNotFoundException;
 import com.energymonitor.deviceservice.mapper.DeviceMapper;

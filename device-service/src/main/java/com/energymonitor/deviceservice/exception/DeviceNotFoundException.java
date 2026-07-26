@@ -1,6 +1,8 @@
 package com.energymonitor.deviceservice.exception;
 
-public class DeviceNotFoundException extends RuntimeException {
+import com.energymonitor.common.exception.ResourceNotFoundException;
+
+public class DeviceNotFoundException extends ResourceNotFoundException {
 
     private static final String MESSAGE_TEMPLATE = "Device not found with id %s";
 

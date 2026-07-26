@@ -1,6 +1,6 @@
 package com.energymonitor.ingestionservice.simulation;
 
-import com.energymonitor.ingestionservice.dto.EnergyUsageDto;
+import com.energymonitor.common.events.EnergyUsageDto;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
