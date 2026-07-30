@@ -1,0 +1,43 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: alert-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5434/alert_db}
+    username: ${DB_USERNAME:alert_service}
+    password: ${DB_PASSWORD:alert_service_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: alert-service
+
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+        spring.json.trusted.packages: com.energymonitor.common.events
+        spring.json.use.type.headers: true
+        spring.json.value.default.type: com.energymonitor.common.events.AlertingEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+# Mailpit SMTP Configuration
+  mail:
+    host: localhost
+    port: 1025
+    smtp:
+      auth: false
+      starttls:
+        enable: false

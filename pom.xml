@@ -16,6 +16,7 @@
         <module>device-service</module>
         <module>ingestion-service</module>
         <module>usage-service</module>
+        <module>alert-service</module>
     </modules>
 
 </project>

@@ -6,12 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import static com.energymonitor.common.events.StaticEventNames.ENERGY_USAGE_TOPIC;
+
 @RequiredArgsConstructor
 @Service
 public class IngestionService {
     private final KafkaTemplate<String, EnergyUsageEvent> kafkaTemplate;
 
-    private static final String ENERGY_USAGE_TOPIC = "energy-usage-topic";
     public void ingest(EnergyUsageDto input){
         EnergyUsageEvent event = EnergyUsageEvent.builder()
                 .deviceId(input.deviceId())

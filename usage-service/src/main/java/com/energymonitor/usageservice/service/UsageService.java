@@ -28,6 +28,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.energymonitor.common.events.StaticEventNames.*;
+
 @Service
 @Slf4j
 @Component
@@ -40,10 +42,8 @@ public class UsageService {
     private final KafkaTemplate<String, AlertingEvent> kafkaTemplate;
 
 
-    private static final String USAGE_TOPIC = "energy-usage-topic";
-    private static final String USAGE_TOPIC_DLT = "energy-usage-topic-dlt";
-    private static final String ALERT_USAGE_TOPIC = "alert-usage-topic";
-    @KafkaListener(topics = USAGE_TOPIC)
+
+    @KafkaListener(topics = ENERGY_USAGE_TOPIC)
     public void consumeUsage(EnergyUsageEvent event){
 
         log.info("Consuming energy usage event: {}", event);
