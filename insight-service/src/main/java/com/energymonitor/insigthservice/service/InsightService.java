@@ -3,7 +3,7 @@ package com.energymonitor.insigthservice.service;
 import com.energymonitor.common.dto.DeviceDto;
 import com.energymonitor.common.dto.UsageDto;
 import com.energymonitor.insigthservice.dto.InsightDto;
-import com.energymonitor.insigthservice.http.UsageClient;
+import com.energymonitor.insigthservice.http.ResilientUsageClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class InsightService {
 
-    private final UsageClient usageClient;
+    private final ResilientUsageClient usageClient;
     private final OllamaChatModel ollamaChatModel;
 
 

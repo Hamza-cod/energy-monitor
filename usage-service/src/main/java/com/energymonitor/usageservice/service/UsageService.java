@@ -4,8 +4,8 @@ import com.energymonitor.common.dto.UsageDto;
 import com.energymonitor.usageservice.config.InfluxDbProperties;
 import com.energymonitor.common.dto.DeviceDto;
 import com.energymonitor.common.dto.UserDto;
-import com.energymonitor.usageservice.http.DeviceClient;
-import com.energymonitor.usageservice.http.UserClient;
+import com.energymonitor.usageservice.http.ResilientDeviceClient;
+import com.energymonitor.usageservice.http.ResilientUserClient;
 import com.energymonitor.common.events.AlertingEvent;
 import com.energymonitor.common.events.EnergyUsageEvent;
 import com.energymonitor.usageservice.model.DeviceEnergy;
@@ -38,8 +38,8 @@ import static com.energymonitor.common.events.StaticEventNames.*;
 public class UsageService {
     private final InfluxDbProperties influxDbProperties;
     private final InfluxDBClient influxDBClient;
-    private final DeviceClient deviceClient;
-    private final UserClient userClient;
+    private final ResilientDeviceClient deviceClient;
+    private final ResilientUserClient userClient;
     private final KafkaTemplate<String, AlertingEvent> kafkaTemplate;
 
 
@@ -134,9 +134,19 @@ public class UsageService {
 
         List<String> usersIds = new ArrayList<>(deviceUserMap.keySet());
         usersIds.forEach(userId -> {
-            UserDto user = userClient.getUserById(userId);
-            userThresholdMap.put(userId, user.getEnergyAlertingThreshold());
-            userEmailMap.put(userId, user.getEmail());
+            // Retries still throw once exhausted. Isolating the failure here keeps
+            // one unreachable user from aborting the alert run for everyone else.
+            try {
+                UserDto user = userClient.getUserById(userId);
+                if (user == null) {
+                    log.warn("Skipping alert check for user {}: lookup returned no user", userId);
+                    return;
+                }
+                userThresholdMap.put(userId, user.getEnergyAlertingThreshold());
+                userEmailMap.put(userId, user.getEmail());
+            } catch (Exception e) {
+                log.warn("Failed to fetch user {} for alerting: {}", userId, e.getMessage());
+            }
         });
 
         // check threshold against the aggregated energy usage

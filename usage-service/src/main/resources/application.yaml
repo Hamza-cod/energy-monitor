@@ -26,6 +26,14 @@ spring:
     apiversion:
       use:
         header: x-api-v
+
+  # Without a read timeout a hung peer pins the calling thread forever, which
+  # exhausts the servlet pool and takes this service down with it. @Retryable
+  # cannot help there: a call that never returns never throws.
+  http:
+    clients:
+      connect-timeout: 2s
+      read-timeout: 5s
 influx-db:
     url: http://localhost:8072
     token: 512bit_token
