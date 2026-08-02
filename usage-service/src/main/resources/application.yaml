@@ -22,6 +22,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  mvc:
+    apiversion:
+      use:
+        header: x-api-v
 influx-db:
     url: http://localhost:8072
     token: 512bit_token

@@ -1,0 +1,21 @@
+
+spring:
+  application:
+    name: insight-service
+  mvc:
+    apiversion:
+      use:
+        header: x-api-v
+  ai:
+    ollama :
+            chat :
+              model: minimax-m3:cloud
+            init :
+              pull-model-strategy : never
+server:
+  port: 8088
+usage:
+  client:
+    base-url: http://localhost:8084
+
+

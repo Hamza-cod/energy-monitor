@@ -1,5 +1,6 @@
 package com.energymonitor.usageservice.service;
 
+import com.energymonitor.common.dto.UsageDto;
 import com.energymonitor.usageservice.config.InfluxDbProperties;
 import com.energymonitor.common.dto.DeviceDto;
 import com.energymonitor.common.dto.UserDto;
@@ -162,5 +163,91 @@ public class UsageService {
                 kafkaTemplate.send(ALERT_USAGE_TOPIC,event);
             }
         });
+    }
+
+
+
+
+    public UsageDto getXDaysUsageForUser(String userId, int days) {
+        log.info("Getting usage for userId {} over past {} days", userId, days);
+
+        final List<DeviceDto> devices;
+        try {
+            devices = deviceClient.getAllDevicesForUser(userId);
+        } catch (Exception e) {
+            log.error("Failed to fetch devices for user {}: {}", userId, e.getMessage());
+            return UsageDto.builder().userId(userId).devices(List.of()).build();
+        }
+
+        if (devices == null || devices.isEmpty()) {
+            log.info("No devices found for user {}", userId);
+            return UsageDto.builder().userId(userId).devices(List.of()).build();
+        }
+
+        final List<String> deviceIds = devices.stream()
+                .map(DeviceDto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (deviceIds.isEmpty()) {
+            devices.forEach(device -> device.setEnergyConsumed(0.0));
+            return UsageDto.builder().userId(userId).devices(devices).build();
+        }
+
+        final Instant now = Instant.now();
+        final Instant start = now.minus(days, ChronoUnit.DAYS);
+
+        // build device filter: r["device_id"] == "1" or r["device_id"] == "2"
+        final String deviceFilter = deviceIds.stream()
+                .map(deviceId -> String.format("r[\"device_id\"] == \"%s\"", deviceId))
+                .collect(Collectors.joining(" or "));
+
+        // tag/field names must match what consumeUsage() writes
+        String fluxQuery = String.format("""
+        from(bucket: "%s")
+          |> range(start: time(v: "%s"), stop: time(v: "%s"))
+          |> filter(fn: (r) => r["_measurement"] == "energy_usage")
+          |> filter(fn: (r) => r["_field"] == "usage")
+          |> filter(fn: (r) => %s)
+          |> group(columns: ["device_id"])
+          |> sum(column: "_value")
+        """, influxDbProperties.bucket(), start, now, deviceFilter);
+
+        final Map<String, Double> aggregatedMap = new HashMap<>();
+
+        try {
+            QueryApi queryApi = influxDBClient.getQueryApi();
+            List<FluxTable> tables = queryApi.query(fluxQuery, influxDbProperties.org());
+
+            for (FluxTable table : tables) {
+                for (FluxRecord record : table.getRecords()) {
+                    Object deviceIdObj = record.getValueByKey("device_id");
+                    if (deviceIdObj == null) continue;
+
+                    double energyConsumed = record.getValueByKey("_value") instanceof Number value
+                            ? value.doubleValue()
+                            : 0.0;
+
+                    aggregatedMap.merge(deviceIdObj.toString(), energyConsumed, Double::sum);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to query InfluxDB for user {} usage over {} days: {}", userId, days, e.getMessage());
+            devices.forEach(device -> device.setEnergyConsumed(0.0));
+            return UsageDto.builder().userId(userId).devices(devices).build();
+        }
+
+        // populate aggregated energy consumed per device
+        for (DeviceDto device : devices) {
+            device.setEnergyConsumed(
+                    device.getId() == null ? 0.0 : aggregatedMap.getOrDefault(device.getId(), 0.0));
+        }
+
+        log.info("Aggregated energy consumption for userId {}: {}", userId, aggregatedMap);
+
+        return UsageDto.builder()
+                .userId(userId)
+                .devices(devices)
+                .build();
     }
 }
