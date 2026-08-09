@@ -34,3 +34,32 @@ simulation :
 server:
   forward-headers-strategy: framework
   port: 8082
+
+# Actuator & Micrometer. /actuator/prometheus is the scrape target; the
+# application tag is what separates this service's series from the others once
+# every service reports into the same Prometheus.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # Percentile histograms let Prometheus aggregate latency across instances;
+      # client-side percentiles cannot be averaged after the fact.
+      percentiles-histogram:
+        http.server.requests: true
+  observations:
+    key-values:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true

@@ -56,7 +56,9 @@ services:
   usage: ${USAGE_SERVICE_URL:http://localhost:8084}
   insight: ${INSIGHT_SERVICE_URL:http://localhost:8088}
 
-# Actuator & Prometheus
+# Actuator & Micrometer. /actuator/prometheus is the scrape target; the
+# application tag is what separates this service's series from the others once
+# every service reports into the same Prometheus.
 management:
   health:
     circuitbreakers:
@@ -64,6 +66,8 @@ management:
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
   endpoints:
     web:
       exposure:
@@ -71,6 +75,18 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+    distribution:
+      # Percentile histograms let Prometheus aggregate latency across instances;
+      # client-side percentiles cannot be averaged after the fact.
+      percentiles-histogram:
+        http.server.requests: true
+  observations:
+    key-values:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 resilience4j:
   circuitbreaker:
