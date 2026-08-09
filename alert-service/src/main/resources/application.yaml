@@ -1,0 +1,71 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: alert-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5434/alert_db}
+    username: ${DB_USERNAME:alert_service}
+    password: ${DB_PASSWORD:alert_service_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: alert-service
+
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+        spring.json.trusted.packages: com.energymonitor.common.events
+        spring.json.use.type.headers: true
+        spring.json.value.default.type: com.energymonitor.common.events.AlertingEvent
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+# Mailpit SMTP Configuration
+  mail:
+    host: localhost
+    port: 1025
+    smtp:
+      auth: false
+      starttls:
+        enable: false
+# Actuator & Micrometer. /actuator/prometheus is the scrape target; the
+# application tag is what separates this service's series from the others once
+# every service reports into the same Prometheus.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # Percentile histograms let Prometheus aggregate latency across instances;
+      # client-side percentiles cannot be averaged after the fact.
+      percentiles-histogram:
+        http.server.requests: true
+  observations:
+    key-values:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true

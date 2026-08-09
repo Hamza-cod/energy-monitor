@@ -1,10 +1,11 @@
 package com.energymonitor.usageservice.service;
 
+import com.energymonitor.common.dto.UsageDto;
 import com.energymonitor.usageservice.config.InfluxDbProperties;
 import com.energymonitor.common.dto.DeviceDto;
 import com.energymonitor.common.dto.UserDto;
-import com.energymonitor.usageservice.http.DeviceClient;
-import com.energymonitor.usageservice.http.UserClient;
+import com.energymonitor.usageservice.http.ResilientDeviceClient;
+import com.energymonitor.usageservice.http.ResilientUserClient;
 import com.energymonitor.common.events.AlertingEvent;
 import com.energymonitor.common.events.EnergyUsageEvent;
 import com.energymonitor.usageservice.model.DeviceEnergy;
@@ -28,6 +29,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.energymonitor.common.events.StaticEventNames.*;
+
 @Service
 @Slf4j
 @Component
@@ -35,15 +38,13 @@ import java.util.stream.Collectors;
 public class UsageService {
     private final InfluxDbProperties influxDbProperties;
     private final InfluxDBClient influxDBClient;
-    private final DeviceClient deviceClient;
-    private final UserClient userClient;
+    private final ResilientDeviceClient deviceClient;
+    private final ResilientUserClient userClient;
     private final KafkaTemplate<String, AlertingEvent> kafkaTemplate;
 
 
-    private static final String USAGE_TOPIC = "energy-usage-topic";
-    private static final String USAGE_TOPIC_DLT = "energy-usage-topic-dlt";
-    private static final String ALERT_USAGE_TOPIC = "alert-usage-topic";
-    @KafkaListener(topics = USAGE_TOPIC)
+
+    @KafkaListener(topics = ENERGY_USAGE_TOPIC)
     public void consumeUsage(EnergyUsageEvent event){
 
         log.info("Consuming energy usage event: {}", event);
@@ -133,9 +134,19 @@ public class UsageService {
 
         List<String> usersIds = new ArrayList<>(deviceUserMap.keySet());
         usersIds.forEach(userId -> {
-            UserDto user = userClient.getUserById(userId);
-            userThresholdMap.put(userId, user.getEnergyAlertingThreshold());
-            userEmailMap.put(userId, user.getEmail());
+            // Retries still throw once exhausted. Isolating the failure here keeps
+            // one unreachable user from aborting the alert run for everyone else.
+            try {
+                UserDto user = userClient.getUserById(userId);
+                if (user == null) {
+                    log.warn("Skipping alert check for user {}: lookup returned no user", userId);
+                    return;
+                }
+                userThresholdMap.put(userId, user.getEnergyAlertingThreshold());
+                userEmailMap.put(userId, user.getEmail());
+            } catch (Exception e) {
+                log.warn("Failed to fetch user {} for alerting: {}", userId, e.getMessage());
+            }
         });
 
         // check threshold against the aggregated energy usage
@@ -162,5 +173,91 @@ public class UsageService {
                 kafkaTemplate.send(ALERT_USAGE_TOPIC,event);
             }
         });
+    }
+
+
+
+
+    public UsageDto getXDaysUsageForUser(String userId, int days) {
+        log.info("Getting usage for userId {} over past {} days", userId, days);
+
+        final List<DeviceDto> devices;
+        try {
+            devices = deviceClient.getAllDevicesForUser(userId);
+        } catch (Exception e) {
+            log.error("Failed to fetch devices for user {}: {}", userId, e.getMessage());
+            return UsageDto.builder().userId(userId).devices(List.of()).build();
+        }
+
+        if (devices == null || devices.isEmpty()) {
+            log.info("No devices found for user {}", userId);
+            return UsageDto.builder().userId(userId).devices(List.of()).build();
+        }
+
+        final List<String> deviceIds = devices.stream()
+                .map(DeviceDto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (deviceIds.isEmpty()) {
+            devices.forEach(device -> device.setEnergyConsumed(0.0));
+            return UsageDto.builder().userId(userId).devices(devices).build();
+        }
+
+        final Instant now = Instant.now();
+        final Instant start = now.minus(days, ChronoUnit.DAYS);
+
+        // build device filter: r["device_id"] == "1" or r["device_id"] == "2"
+        final String deviceFilter = deviceIds.stream()
+                .map(deviceId -> String.format("r[\"device_id\"] == \"%s\"", deviceId))
+                .collect(Collectors.joining(" or "));
+
+        // tag/field names must match what consumeUsage() writes
+        String fluxQuery = String.format("""
+        from(bucket: "%s")
+          |> range(start: time(v: "%s"), stop: time(v: "%s"))
+          |> filter(fn: (r) => r["_measurement"] == "energy_usage")
+          |> filter(fn: (r) => r["_field"] == "usage")
+          |> filter(fn: (r) => %s)
+          |> group(columns: ["device_id"])
+          |> sum(column: "_value")
+        """, influxDbProperties.bucket(), start, now, deviceFilter);
+
+        final Map<String, Double> aggregatedMap = new HashMap<>();
+
+        try {
+            QueryApi queryApi = influxDBClient.getQueryApi();
+            List<FluxTable> tables = queryApi.query(fluxQuery, influxDbProperties.org());
+
+            for (FluxTable table : tables) {
+                for (FluxRecord record : table.getRecords()) {
+                    Object deviceIdObj = record.getValueByKey("device_id");
+                    if (deviceIdObj == null) continue;
+
+                    double energyConsumed = record.getValueByKey("_value") instanceof Number value
+                            ? value.doubleValue()
+                            : 0.0;
+
+                    aggregatedMap.merge(deviceIdObj.toString(), energyConsumed, Double::sum);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to query InfluxDB for user {} usage over {} days: {}", userId, days, e.getMessage());
+            devices.forEach(device -> device.setEnergyConsumed(0.0));
+            return UsageDto.builder().userId(userId).devices(devices).build();
+        }
+
+        // populate aggregated energy consumed per device
+        for (DeviceDto device : devices) {
+            device.setEnergyConsumed(
+                    device.getId() == null ? 0.0 : aggregatedMap.getOrDefault(device.getId(), 0.0));
+        }
+
+        log.info("Aggregated energy consumption for userId {}: {}", userId, aggregatedMap);
+
+        return UsageDto.builder()
+                .userId(userId)
+                .devices(devices)
+                .build();
     }
 }

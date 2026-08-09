@@ -1,4 +1,9 @@
+# Honour the gateway's X-Forwarded-* headers so springdoc advertises the gateway
+# address in the OpenAPI "servers" list. Without this each service advertises its
+# own localhost:<port>, and Swagger's "Try it out" bypasses the gateway (and is
+# then blocked by CORS, since only the gateway is a permitted origin).
 server:
+  forward-headers-strategy: framework
   port: 8084
 spring:
   application:
@@ -22,6 +27,22 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  mvc:
+    apiversion:
+      # Without a default, Spring 7 rejects any request lacking the header with a
+      # 400 - including springdoc's /v3/api-docs and calls proxied by the gateway.
+      # Unversioned requests now resolve to v1.0; clients can still send x-api-v.
+      default: "1.0"
+      use:
+        header: x-api-v
+
+  # Without a read timeout a hung peer pins the calling thread forever, which
+  # exhausts the servlet pool and takes this service down with it. @Retryable
+  # cannot help there: a call that never returns never throws.
+  http:
+    clients:
+      connect-timeout: 2s
+      read-timeout: 5s
 influx-db:
     url: http://localhost:8072
     token: 512bit_token
@@ -35,3 +56,32 @@ device:
 user:
   client:
     base-url: http://localhost:8080
+
+# Actuator & Micrometer. /actuator/prometheus is the scrape target; the
+# application tag is what separates this service's series from the others once
+# every service reports into the same Prometheus.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # Percentile histograms let Prometheus aggregate latency across instances;
+      # client-side percentiles cannot be averaged after the fact.
+      percentiles-histogram:
+        http.server.requests: true
+  observations:
+    key-values:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true

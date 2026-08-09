@@ -1,0 +1,67 @@
+
+spring:
+  application:
+    name: insight-service
+  mvc:
+    apiversion:
+      # Without a default, Spring 7 rejects any request lacking the header with a
+      # 400 — including springdoc's /v3/api-docs and calls proxied by the gateway.
+      # Unversioned requests now resolve to v1; clients can still send x-api-v.
+      default: "1"
+      use:
+        header: x-api-v
+
+  # usage-service queries InfluxDB before answering, so it gets a longer read
+  # window than a plain lookup would need. Still inside the gateway's 30s
+  # budget for this service, leaving room for the Ollama call afterwards.
+  http:
+    clients:
+      connect-timeout: 2s
+      read-timeout: 8s
+  ai:
+    ollama :
+            chat :
+              model: minimax-m3:cloud
+            init :
+              pull-model-strategy : never
+# Honour the gateway's X-Forwarded-* headers so springdoc advertises the gateway
+# address in the OpenAPI "servers" list. Without this each service advertises its
+# own localhost:<port>, and Swagger's "Try it out" bypasses the gateway (and is
+# then blocked by CORS, since only the gateway is a permitted origin).
+server:
+  forward-headers-strategy: framework
+  port: 8088
+usage:
+  client:
+    base-url: http://localhost:8084
+
+# Actuator & Micrometer. /actuator/prometheus is the scrape target; the
+# application tag is what separates this service's series from the others once
+# every service reports into the same Prometheus.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # Percentile histograms let Prometheus aggregate latency across instances;
+      # client-side percentiles cannot be averaged after the fact.
+      percentiles-histogram:
+        http.server.requests: true
+  observations:
+    key-values:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+

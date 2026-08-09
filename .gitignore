@@ -1,2 +1,4 @@
 .idea
 influxdb_data
+common-lib/target
+volume-data
