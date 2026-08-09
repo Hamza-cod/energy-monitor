@@ -1,9 +1,51 @@
 spring:
   application:
     name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          # X-Forwarded-* are only emitted for proxies matching this pattern, and
+          # the default trusts none — so downstream services saw Host: localhost:<their
+          # port> and advertised that in their OpenAPI "servers", sending Swagger's
+          # "Try it out" straight at the service instead of through here.
+          # Loopback only: this is a dev default, not a value to ship to production.
+          trusted-proxies: "127\\.0\\.0\\.1|0:0:0:0:0:0:0:1|::1|localhost"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8091/realms/energy-sec-realm
 
 server:
   port: 8888
+
+# Endpoints served without a JWT. Bound to SecurityConfig#allowedEndpoints.
+allowed:
+  endpoints: /A,/actuator/**,/swagger-ui/**,/swagger-ui.html,/v3/api-docs/**
+
+# One Swagger UI at the gateway with a dropdown per service. Each url is a
+# gateway path that RouteConfig proxies to that service's /v3/api-docs, so the
+# browser stays same-origin and no CORS setup is needed.
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    # Keeps the token entered via Authorize when switching services in the
+    # dropdown, instead of re-authorizing for each one.
+    persist-authorization: true
+    urls:
+      - name: api-gateway
+        url: /v3/api-docs
+      - name: user-service
+        url: /v3/api-docs/user-service
+      - name: device-service
+        url: /v3/api-docs/device-service
+      - name: ingestion-service
+        url: /v3/api-docs/ingestion-service
+      - name: usage-service
+        url: /v3/api-docs/usage-service
+      - name: insight-service
+        url: /v3/api-docs/insight-service
 
 # Downstream service addresses. Bound to ServiceUris and overridable per
 # environment via the matching env var (e.g. USER_SERVICE_URL in docker-compose).

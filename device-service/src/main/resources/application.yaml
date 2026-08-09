@@ -1,4 +1,9 @@
+# Honour the gateway's X-Forwarded-* headers so springdoc advertises the gateway
+# address in the OpenAPI "servers" list. Without this each service advertises its
+# own localhost:<port>, and Swagger's "Try it out" bypasses the gateway (and is
+# then blocked by CORS, since only the gateway is a permitted origin).
 server:
+  forward-headers-strategy: framework
   port: 8081
 spring:
   application:

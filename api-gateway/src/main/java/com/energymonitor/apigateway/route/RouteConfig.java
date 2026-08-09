@@ -10,6 +10,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import java.net.URI;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -46,6 +47,46 @@ public class RouteConfig {
     @Bean
     public RouterFunction<ServerResponse> insightServiceRoute() {
         return proxy("insight-service", "/api/insight/**", services.insight());
+    }
+
+    /**
+     * Exposes each service's OpenAPI document through the gateway so the aggregated
+     * Swagger UI can fetch them same-origin. {@code /v3/api-docs/user-service} is
+     * rewritten to {@code /v3/api-docs} on the target, which is where springdoc
+     * serves it. No circuit breaker here: a docs fetch failing is not worth tripping
+     * the breaker that guards real API traffic.
+     */
+    @Bean
+    public RouterFunction<ServerResponse> userApiDocsRoute() {
+        return apiDocs("user-service", services.user());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> deviceApiDocsRoute() {
+        return apiDocs("device-service", services.device());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> ingestionApiDocsRoute() {
+        return apiDocs("ingestion-service", services.ingestion());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> usageApiDocsRoute() {
+        return apiDocs("usage-service", services.usage());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> insightApiDocsRoute() {
+        return apiDocs("insight-service", services.insight());
+    }
+
+    private static RouterFunction<ServerResponse> apiDocs(String id, String targetUri) {
+        return route(id + "-api-docs")
+                .route(RequestPredicates.path("/v3/api-docs/" + id), http())
+                .before(uri(targetUri))
+                .before(setPath("/v3/api-docs"))
+                .build();
     }
 
     /**

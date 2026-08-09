@@ -2,7 +2,11 @@ spring:
   application:
     name: ingestion-service
   mvc:
-    apiVersion:
+    apiversion:
+      # Without a default, Spring 7 rejects any request lacking the header with a
+      # 400 - including springdoc's /v3/api-docs and calls proxied by the gateway.
+      # Unversioned requests now resolve to v1; clients can still send x-api-v.
+      default: "1"
       use:
         header: x-api-v
   kafka:
@@ -23,5 +27,10 @@ simulation :
   apiVersion: v1
   requests-per-interval: 10000
   interval-ms: 60000
+# Honour the gateway's X-Forwarded-* headers so springdoc advertises the gateway
+# address in the OpenAPI "servers" list. Without this each service advertises its
+# own localhost:<port>, and Swagger's "Try it out" bypasses the gateway (and is
+# then blocked by CORS, since only the gateway is a permitted origin).
 server:
+  forward-headers-strategy: framework
   port: 8082
